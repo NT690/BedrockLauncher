@@ -17,10 +17,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Windows.Data;
-
-using BedrockLauncher.Core.Components;
 using System.Text.RegularExpressions;
-using ExtensionsDotNET;
+using JemExtensions;
+using JemExtensions.WPF;
 
 namespace BedrockLauncher.Dungeons.Classes
 {

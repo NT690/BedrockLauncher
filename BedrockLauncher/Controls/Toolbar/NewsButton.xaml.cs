@@ -14,14 +14,14 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 
 namespace BedrockLauncher.Controls.Toolbar
 {
     /// <summary>
     /// Interaction logic for NewsButton.xaml
     /// </summary>
-    public partial class NewsButton : Grid
+    public partial class NewsButton : ToolbarButtonBase
     {
 
         public NewsButton()
@@ -31,7 +31,8 @@ namespace BedrockLauncher.Controls.Toolbar
 
         private void SideBarButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.MainThread.ButtonManager_Base(this.Name);
+            ToolbarButtonBase_Click(this, e);
+            //ViewModels.MainViewModel.MainThread.ButtonManager_Base(this.Name);
         }
     }
 }

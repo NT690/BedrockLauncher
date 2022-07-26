@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
 
@@ -21,24 +21,18 @@ namespace BedrockLauncher.Controls.Toolbar
     /// <summary>
     /// Interaction logic for DungeonsButton.xaml
     /// </summary>
-    public partial class DungeonsButton : Grid
+    public partial class DungeonsButton : ToolbarButtonBase
     {
 
         public DungeonsButton()
         {
             InitializeComponent();
-            this.DataContext = ViewModels.LauncherModel.Default;
+            this.DataContext = ViewModels.MainViewModel.Default;
         }
 
         private void SideBarButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.MainThread.ButtonManager_Base(this.Name);
-        }
-
-        private void Button_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            if (Button.IsChecked.Value) Progressbar.Visibility = Visibility.Collapsed;
-            else Progressbar.Visibility = Visibility.Visible;
+            ToolbarButtonBase_Click(this, e);
         }
     }
 }

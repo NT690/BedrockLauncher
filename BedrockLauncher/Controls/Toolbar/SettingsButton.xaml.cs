@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
 
@@ -21,7 +21,7 @@ namespace BedrockLauncher.Controls.Toolbar
     /// <summary>
     /// Interaction logic for SideBarButton.xaml
     /// </summary>
-    public partial class SettingsButton : Grid
+    public partial class SettingsButton : ToolbarButtonBase
     {
 
         public SettingsButton()
@@ -31,7 +31,8 @@ namespace BedrockLauncher.Controls.Toolbar
 
         private void SideBarButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.MainThread.ButtonManager_Base(this.Name);
+            ToolbarButtonBase_Click(this, e);
+            //ViewModels.MainViewModel.MainThread.ButtonManager_Base(this.Name);
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
-using ExtensionsDotNET;
-using BedrockLauncher.Core.Classes.SkinPack;
+using JemExtensions;
+using BedrockLauncher.Classes.SkinPack;
 using BedrockLauncher.ViewModels;
 using System.Windows.Navigation;
 
@@ -66,14 +66,14 @@ namespace BedrockLauncher.Pages.Preview
 
         private void OverlayFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            if (LauncherModel.MainThread.ErrorFrame.Content == null && LauncherModel.MainThread.OverlayFrame.Content == null) SkinPreview.Visibility = Visibility.Visible;
+            if (MainViewModel.Default.ErrorFrame.Content == null && MainViewModel.Default.OverlayFrame.Content == null) SkinPreview.Visibility = Visibility.Visible;
             else SkinPreview.Visibility = Visibility.Collapsed;
         }
 
         private void Init()
         {
-            LauncherModel.MainThread.OverlayFrame.Navigating += OverlayFrame_Navigating;
-            LauncherModel.MainThread.OverlayFrame.Navigated += OverlayFrame_Navigated;
+            MainViewModel.Default.OverlayFrame.Navigating += OverlayFrame_Navigating;
+            MainViewModel.Default.OverlayFrame.Navigated += OverlayFrame_Navigated;
 
             if (isEditMode)
             {
@@ -134,9 +134,9 @@ namespace BedrockLauncher.Pages.Preview
                 foreach (var entry in item.Global)
                 {
                     string skin_prefix = string.Format("skin.{0}.", skinPack.Content.localization_name);
-                    if (entry.KeyName.StartsWith(skin_prefix))
+                    if (entry.Key.StartsWith(skin_prefix))
                     {
-                        string localizationName = entry.KeyName.Replace(skin_prefix, "");
+                        string localizationName = entry.Key.Replace(skin_prefix, "");
                         if (!LocalizationTextBox.Items.Contains(localizationName)) LocalizationTextBox.Items.Add(localizationName);
                     }
                 }
@@ -177,7 +177,7 @@ namespace BedrockLauncher.Pages.Preview
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             SkinPreview.Visibility = Visibility.Collapsed;
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
@@ -191,13 +191,13 @@ namespace BedrockLauncher.Pages.Preview
             else skinPack.AddSkin(skin);
 
             SkinPreview.Visibility = Visibility.Collapsed;
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             SkinPreview.Visibility = Visibility.Collapsed;
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         #endregion

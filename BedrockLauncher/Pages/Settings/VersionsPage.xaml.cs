@@ -12,27 +12,24 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Handlers;
+using BedrockLauncher.Extensions;
 using BedrockLauncher.ViewModels;
 
 namespace BedrockLauncher.Pages.Settings
 {
     public partial class VersionsPage : Page
     {
-
-        private bool HasLoadedOnce = false;
+        private bool hasInitalized = false;
         public VersionsPage()
         {
+            this.DataContext = MainViewModel.Default;
             InitializeComponent();
         }
 
-        public async void RefreshVersionsList()
+        public void RefreshVersionsList()
         {
-            await this.Dispatcher.InvokeAsync(() =>
-            {
-                var view = CollectionViewSource.GetDefaultView(VersionsList.ItemsSource) as CollectionView;
-                view.Refresh();
-            });
+
         }
 
         private void Page_Initialized(object sender, EventArgs e)
@@ -42,26 +39,27 @@ namespace BedrockLauncher.Pages.Settings
 
         private void RefreshVersionsList(object sender, RoutedEventArgs e)
         {
-            RefreshVersionsList();
+
         }
 
-        private async void PageHost_Loaded(object sender, RoutedEventArgs e)
+        private void PageHost_Loaded(object sender, RoutedEventArgs e)
         {
-            await this.Dispatcher.InvokeAsync(() =>
+            if (!hasInitalized)
             {
-                if (!HasLoadedOnce)
-                {
-                    VersionsList.ItemsSource = LauncherModel.Default.Versions;
-                    var view = CollectionViewSource.GetDefaultView(VersionsList.ItemsSource) as CollectionView;
-                    view.Filter = LauncherModel.Default.Filter_VersionList;
-                    HasLoadedOnce = true;
-                }
-            });
+                foreach (var ver in MainViewModel.Default.Versions) ver.UpdateFolderSize();
+                hasInitalized = true;
+            }
         }
 
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            await Task.Run(ViewModels.LauncherModel.Default.LoadVersions);
+            await Task.Run(Program.OnApplicationRefresh);
+            foreach (var ver in MainViewModel.Default.Versions) ver.UpdateFolderSize();
+        }
+
+        private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
+        {
+            e.Accepted = FilterSortingHandler.Filter_VersionList(e.Item);
         }
     }
 }

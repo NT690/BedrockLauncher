@@ -1,5 +1,5 @@
-﻿using BedrockLauncher.Core.Classes.SkinPack;
-using BedrockLauncher.Methods;
+﻿using BedrockLauncher.Classes.SkinPack;
+using BedrockLauncher.Extensions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Linq;
@@ -230,14 +230,14 @@ namespace BedrockLauncher.Pages.Preview
 
         private string GetNewPackFolder()
         {
-            string InstallationPath = LauncherModel.Default.FilepathManager.GetInstallationsFolderPath(LauncherModel.Default.Config.CurrentProfileUUID, LauncherModel.Default.Config.CurrentInstallation.DirectoryName);
+            string InstallationPath = MainViewModel.Default.FilePaths.GetInstallationsFolderPath(MainViewModel.Default.Config.CurrentProfileUUID, MainViewModel.Default.Config.CurrentInstallation.DirectoryName);
             string NewPackDirectoryName = Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-            string NewPackDirectory = Path.Combine(LauncherModel.Default.FilepathManager.GetSkinPacksFolderPath(InstallationPath, false), NewPackDirectoryName);
+            string NewPackDirectory = Path.Combine(MainViewModel.Default.FilePaths.GetSkinPacksFolderPath(InstallationPath, MainViewModel.Default.Config.CurrentInstallation.VersionType), NewPackDirectoryName);
 
             while (Directory.Exists(NewPackDirectory))
             {
                 NewPackDirectoryName = Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-                NewPackDirectory = Path.Combine(LauncherModel.Default.FilepathManager.GetSkinPacksFolderPath(InstallationPath, false), NewPackDirectoryName);
+                NewPackDirectory = Path.Combine(MainViewModel.Default.FilePaths.GetSkinPacksFolderPath(InstallationPath, MainViewModel.Default.Config.CurrentInstallation.VersionType), NewPackDirectoryName);
             }
 
             return NewPackDirectory;
@@ -325,18 +325,18 @@ namespace BedrockLauncher.Pages.Preview
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             if (!isEditMode) RemoveUnfinishedPack();
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
             SaveSkinPack();
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         #endregion
@@ -368,7 +368,7 @@ namespace BedrockLauncher.Pages.Preview
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine(ex);
+                    System.Diagnostics.Trace.WriteLine(ex);
                 }
 
             }

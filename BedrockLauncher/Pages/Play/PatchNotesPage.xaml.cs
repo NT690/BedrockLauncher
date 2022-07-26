@@ -1,25 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using BedrockLauncher.Methods;
-using CodeHollow.FeedReader;
-using BedrockLauncher.Classes;
+using BedrockLauncher.Classes.Launcher;
 using System.Diagnostics;
-using BedrockLauncher.Controls.Items;
+using BedrockLauncher.Controls.Items.News;
 using BedrockLauncher.Downloaders;
-using BedrockLauncher.Core.Classes;
-using BedrockLauncher.ViewModels;
 
 namespace BedrockLauncher.Pages.Play
 {
@@ -30,59 +18,56 @@ namespace BedrockLauncher.Pages.Play
     {
         private ChangelogDownloader downloader;
 
-        private bool Updating = false;
+        private bool hasInitalized = false;
 
 
         public PatchNotesPage(ChangelogDownloader _downloader)
         {
-            InitializeComponent();
             this.downloader = _downloader;
             this.DataContext = this.downloader;
+            InitializeComponent();
         }
 
-        private void Downloader_RefreshableStateChanged(object sender, EventArgs e)
-        {
-            this.Dispatcher.Invoke(() =>
-            {
-                UpdateButton.IsEnabled = downloader.IsRefreshable;
-            });
-        }
-
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        private async Task RefreshPatchNotes(bool force)
         {
             await this.Dispatcher.InvokeAsync(() =>
             {
+                if (force) Task.Run(downloader.UpdateList);
                 var view = CollectionViewSource.GetDefaultView(PatchNotesList.ItemsSource) as CollectionView;
-                view.Filter = Filter_PatchNotes;
+                if (view != null) view.Filter = Filter_PatchNotes;
             });
-            await UpdateUI();
+        } 
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!hasInitalized)
+            {
+                Task.Run(() => RefreshPatchNotes(true));
+                hasInitalized = true;
+            }
         }
 
         public bool Filter_PatchNotes(object obj)
         {
-            MCPatchNotesItem v = obj as MCPatchNotesItem;
+            PatchNote v = obj as PatchNote;
 
             if (v != null)
             {
-                if (!BetasCheckBox.IsChecked.Value && v.isBeta) return false;
-                else if (!ReleasesCheckBox.IsChecked.Value && !v.isBeta) return false;
+                if (!downloader.ShowBetas && v.isBeta) return false;
+                else if (!downloader.ShowReleases && !v.isBeta) return false;
                 else return true;
             }
             else return false;
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
-            await this.Dispatcher.InvokeAsync(async () =>
-            {
-                await Task.Run(downloader.UpdateList);
-            });
+            Task.Run(() => RefreshPatchNotes(true));
         }
 
-        private async void RefreshList(object sender, RoutedEventArgs e)
+        private void RefreshList(object sender, RoutedEventArgs e)
         {
-            await Task.Run(() => Page_Loaded(sender, e));
+            Task.Run(() => RefreshPatchNotes(false));
         }
 
         private void PatchNotesList_KeyUp(object sender, KeyEventArgs e)
@@ -91,8 +76,8 @@ namespace BedrockLauncher.Pages.Play
             {
                 if (PatchNotesList.SelectedItem != null)
                 {
-                    var item = PatchNotesList.SelectedItem as MCPatchNotesItem;
-                    PatchNotesItem.LoadChangelog(item);
+                    var item = PatchNotesList.SelectedItem as PatchNote;
+                    FeedItem_PatchNotes.LoadChangelog(item);
                 }
             }
         }
@@ -111,34 +96,14 @@ namespace BedrockLauncher.Pages.Play
             e.Handled = true;
         }
 
-        private async void Page_Initialized(object sender, EventArgs e)
+        private void Page_Initialized(object sender, EventArgs e)
         {
-            await this.Dispatcher.InvokeAsync(() =>
-            {
-                this.downloader.RefreshableStateChanged += Downloader_RefreshableStateChanged;
-                this.downloader.PatchNotes.CollectionChanged += PatchNotes_CollectionChanged;
-                PatchNotesList.ItemsSource = downloader.PatchNotes;
-                this.downloader.UpdateList();
-            });
+
         }
 
-        private async void PatchNotes_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void PatchNotesList_SourceUpdated(object sender, DataTransferEventArgs e)
         {
-            await UpdateUI();
-        }
 
-        private async Task UpdateUI()
-        {
-            await this.Dispatcher.InvokeAsync(() =>
-            {
-                if (!Updating)
-                {
-                    Updating = true;
-                    if (PatchNotesList.Items.Count > 0 && NothingFound.Visibility != Visibility.Collapsed) NothingFound.Visibility = Visibility.Collapsed;
-                    else if (PatchNotesList.Items.Count <= 0 && NothingFound.Visibility != Visibility.Visible) NothingFound.Visibility = Visibility.Visible;
-                    Updating = false;
-                }
-            });
         }
     }
 }

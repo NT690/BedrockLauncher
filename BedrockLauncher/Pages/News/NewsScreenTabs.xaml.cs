@@ -12,12 +12,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using CodeHollow.FeedReader;
 using BedrockLauncher.Classes;
 using System.Diagnostics;
 using System.Windows.Controls.Primitives;
-using BedrockLauncher.Downloaders;
+using BedrockLauncher.Handlers;
+using BedrockLauncher.Components;
+using BedrockLauncher.UI.Components;
 
 namespace BedrockLauncher.Pages.News
 {
@@ -25,54 +27,34 @@ namespace BedrockLauncher.Pages.News
     {
 
 
-        private News_Minecraft_Page communityNewsPage = new News_Minecraft_Page();
-        private News_JavaDungeons_Page javaNewsPage = new News_JavaDungeons_Page();
-        private News_MinecraftForums_Page forumsNewsPage = new News_MinecraftForums_Page();
-        private News_Launcher_Page launcherNewsPage;
+        private RSSNewsPage communityNewsPage = new RSSNewsPage(ViewModels.RSSViewModel.MinecraftCommunity);
+        private OfficalNewsPage javaNewsPage = new OfficalNewsPage();
+        private RSSNewsPage forumsNewsPage = new RSSNewsPage(ViewModels.RSSViewModel.MinecraftForums);
+        private LauncherNewsPage launcherNewsPage;
+
+        private Navigator Navigator { get; set; } = new Navigator();
 
         private string LastTabName;
 
-        public NewsScreenTabs(LauncherUpdater updater)
+        public NewsScreenTabs()
         {
             InitializeComponent();
             LastTabName = OfficalTab.Name;
-            launcherNewsPage = new News_Launcher_Page(updater);
+            launcherNewsPage = new LauncherNewsPage();
         }
 
 
 
-        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            await Task.Run(() => ButtonManager_Base(LastTabName));
+             Task.Run(() => ButtonManager_Base(LastTabName));
         }
 
         #region Navigation
 
-        private async void Navigate(object content)
+        public void ResetButtonManager(string buttonName)
         {
-            bool animate = Properties.LauncherSettings.Default.AnimatePageTransitions;
-
-            if (!animate)
-            {
-                await ContentFrame.Dispatcher.InvokeAsync(() => ContentFrame.Navigate(content));
-                return;
-            }
-
-            int CurrentPageIndex = ViewModels.LauncherModel.Default.CurrentPageIndex_News;
-            int LastPageIndex = ViewModels.LauncherModel.Default.LastPageIndex_News;
-            if (CurrentPageIndex == LastPageIndex) return;
-
-            ExpandDirection direction;
-
-            if (CurrentPageIndex > LastPageIndex) direction = ExpandDirection.Right;
-            else direction = ExpandDirection.Left;
-
-            await Task.Run(() => BedrockLauncher.Core.Components.PageAnimator.FrameSwipe(ContentFrame, content, direction));
-        }
-
-        public async void ResetButtonManager(string buttonName)
-        {
-            await this.Dispatcher.InvokeAsync(() =>
+            this.Dispatcher.Invoke(() =>
             {
                 // just all buttons list
                 // ya i know this is really bad, i need to learn mvvm instead of doing this shit
@@ -94,9 +76,9 @@ namespace BedrockLauncher.Pages.News
 
         }
 
-        public async void ButtonManager(object sender, RoutedEventArgs e)
+        public void ButtonManager(object sender, RoutedEventArgs e)
         {
-            await this.Dispatcher.InvokeAsync(() =>
+            this.Dispatcher.Invoke(() =>
             {
                 var toggleButton = sender as ToggleButton;
                 string name = toggleButton.Name;
@@ -104,9 +86,9 @@ namespace BedrockLauncher.Pages.News
             });
         }
 
-        public async void ButtonManager_Base(string senderName)
+        public void ButtonManager_Base(string senderName)
         {
-            await this.Dispatcher.InvokeAsync(() =>
+            this.Dispatcher.Invoke(() =>
             {
                 ResetButtonManager(senderName);
 
@@ -119,30 +101,30 @@ namespace BedrockLauncher.Pages.News
 
 
 
-        public async void NavigateToCommunityNews()
+        public void NavigateToCommunityNews()
         {
-            ViewModels.LauncherModel.Default.UpdateNewsPageIndex(0);
-            await Task.Run(() => Navigate(communityNewsPage));
+            Navigator.UpdatePageIndex(0);
+            Task.Run(() => Navigator.Navigate(ContentFrame, communityNewsPage));
             LastTabName = OfficalTab.Name;
         }
 
-        public async void NavigateToJavaNews()
+        public void NavigateToJavaNews()
         {
-            ViewModels.LauncherModel.Default.UpdateNewsPageIndex(1);
-            await Task.Run(() => Navigate(javaNewsPage));
+            Navigator.UpdatePageIndex(1);
+            Task.Run(() => Navigator.Navigate(ContentFrame, javaNewsPage));
             LastTabName = JavaTab.Name;
         }
 
-        public async void NavigateToForumNews()
+        public void NavigateToForumNews()
         {
-            ViewModels.LauncherModel.Default.UpdateNewsPageIndex(2);
-            await Task.Run(() => Navigate(forumsNewsPage));
+            Navigator.UpdatePageIndex(2);
+            Task.Run(() => Navigator.Navigate(ContentFrame, forumsNewsPage));
             LastTabName = ForumsTab.Name;
         }
-        public async void NavigateToLauncherNews()
+        public void NavigateToLauncherNews()
         {
-            ViewModels.LauncherModel.Default.UpdateNewsPageIndex(3);
-            await Task.Run(() => Navigate(launcherNewsPage));
+            Navigator.UpdatePageIndex(3);
+            Task.Run(() => Navigator.Navigate(ContentFrame, launcherNewsPage));
             LastTabName = LauncherTab.Name;
         }
 

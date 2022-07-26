@@ -1,4 +1,4 @@
-﻿using BedrockLauncher.Methods;
+﻿using BedrockLauncher.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,9 +87,9 @@ namespace BedrockLauncher.Pages.FirstLaunch
 
             void Page3()
             {
-                if (LauncherModel.Default.Config.profiles.Count() != 0)
+                if (MainViewModel.Default.Config.profiles.Count() != 0)
                 {
-                    Properties.LauncherSettings.Default.CurrentProfile = LauncherModel.Default.Config.profiles.FirstOrDefault().Key;
+                    Properties.LauncherSettings.Default.CurrentProfile = MainViewModel.Default.Config.profiles.FirstOrDefault().Key;
                     Properties.LauncherSettings.Default.Save();
                     MoveToPage(4);
                 }
@@ -126,11 +126,11 @@ namespace BedrockLauncher.Pages.FirstLaunch
 
             void Page6(bool _backup)
             {
-                if (_backup) LauncherModel.Default.GameManager.Backup();
-                ViewModels.LauncherModel.Default.SetOverlayFrame_Strict(null);
+                if (_backup) Task.Run(Handlers.BackupHandler.BackupOriginalSaveData);
+                Task.Run(Program.OnApplicationRefresh);
+                ViewModels.MainViewModel.Default.SetOverlayFrame(null, true);
                 Properties.LauncherSettings.Default.IsFirstLaunch = false;
                 Properties.LauncherSettings.Default.Save();
-                LauncherModel.Default.LoadConfig();
             }
         }
     }

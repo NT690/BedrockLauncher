@@ -1,4 +1,4 @@
-﻿using BedrockLauncher.Methods;
+﻿using BedrockLauncher.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using BedrockLauncher.ViewModels;
+using BedrockLauncher.UI.Controls.Misc;
+using FolderBrowserEx;
 
 namespace BedrockLauncher.Pages.FirstLaunch
 {
@@ -40,7 +42,6 @@ namespace BedrockLauncher.Pages.FirstLaunch
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            LauncherModel.Default.LoadConfig();
             pageSwitcher.MoveToPage(3);
         }
 
@@ -63,20 +64,20 @@ namespace BedrockLauncher.Pages.FirstLaunch
                 }
                 else
                 {
-                    StorageDirectoryTextBox.Text = LauncherModel.Default.FilepathManager.DefaultLocation;
+                    StorageDirectoryTextBox.Text = MainViewModel.Default.FilePaths.DefaultLocation;
                 }
             }
         }
 
         private void BrowseForDirectory()
         {
-            BedrockLauncher.Core.Controls.FolderSelectDialog dialog = new BedrockLauncher.Core.Controls.FolderSelectDialog()
+            FolderBrowserDialog dialog = new FolderBrowserDialog()
             {
-                InitialDirectory = StorageDirectoryTextBox.Text
+                InitialFolder = StorageDirectoryTextBox.Text
             };
-            if (dialog.ShowDialog(new WindowInteropHelper(Application.Current.MainWindow).Handle))
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.LauncherSettings.Default.FixedDirectory = dialog.FileName;
+                Properties.LauncherSettings.Default.FixedDirectory = dialog.SelectedFolder;
                 Properties.LauncherSettings.Default.Save();
             }
         }

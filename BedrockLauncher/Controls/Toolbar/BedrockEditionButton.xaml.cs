@@ -12,27 +12,28 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
+using BedrockLauncher.Components;
 
 namespace BedrockLauncher.Controls.Toolbar
 {
     /// <summary>
     /// Interaction logic for BedrockEditionButton.xaml
     /// </summary>
-    public partial class BedrockEditionButton : Grid
+    public partial class BedrockEditionButton : ToolbarButtonBase
     {
 
         public BedrockEditionButton()
         {
             InitializeComponent();
-            this.DataContext = ViewModels.LauncherModel.Default;
+            this.DataContext = ViewModels.MainViewModel.Default;
         }
 
         private void SideBarButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.MainThread.ButtonManager_Base(this.Name);
+            ToolbarButtonBase_Click(this, e);
         }
 
         private void Button_CheckedChanged(object sender, RoutedEventArgs e)

@@ -13,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using Microsoft.Win32;
 using BedrockLauncher.ViewModels;
 
@@ -41,7 +41,7 @@ namespace BedrockLauncher.Pages.Settings
 
         private void BackupButton_Click(object sender, RoutedEventArgs e)
         {
-            LauncherModel.Default.GameManager.Backup();
+            Task.Run(Handlers.BackupHandler.BackupOriginalSaveData);
         }
 
         private void AdvancedSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -82,11 +82,11 @@ namespace BedrockLauncher.Pages.Settings
             };
             if (dialog.ShowDialog().Value)
             {
-                string fileToUse = LauncherModel.Default.FilepathManager.AddImageToIconCache(dialog.FileName);
+                string fileToUse = MainViewModel.Default.FilePaths.AddImageToIconCache(dialog.FileName);
                 Properties.LauncherSettings.Default.ExternalLauncherIconPath = fileToUse;
                 Properties.LauncherSettings.Default.Save();
             }
-        }
+        }   
 
         private void ResetExternalLauncherIcon_Button_Click(object sender, RoutedEventArgs e)
         {
@@ -98,5 +98,6 @@ namespace BedrockLauncher.Pages.Settings
         {
             Properties.LauncherSettings.Default.Save();
         }
+
     }
 }

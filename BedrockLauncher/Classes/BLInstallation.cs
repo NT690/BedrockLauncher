@@ -4,16 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using BedrockLauncher.Core.Classes;
+using BedrockLauncher.Classes;
 using Newtonsoft.Json;
 using BedrockLauncher.ViewModels;
 using System.ComponentModel;
 using System.IO;
-using BedrockLauncher.Core.Components;
+using BedrockLauncher.Components;
+using System.Diagnostics;
+using BedrockLauncher.Enums;
+using PostSharp.Patterns.Model;
+using BedrockLauncher.UpdateProcessor.Enums;
 
 namespace BedrockLauncher.Classes
 {
-    public class BLInstallation : NotifyPropertyChangedBase
+
+    [NotifyPropertyChanged(ExcludeExplicitProperties = Constants.Debugging.ExcludeExplicitProperties)]    //88 Lines
+    public class BLInstallation
     {
         public string DisplayName { get; set; }
         public string VersionUUID { get; set; }
@@ -32,8 +38,8 @@ namespace BedrockLauncher.Classes
         {
             get
             {
-
-                if (IsCustomIcon) return Path.Combine(LauncherModel.Default.FilepathManager.GetCacheFolderPath(), IconPath);
+                Depends.On(IsCustomIcon, IconPath);
+                if (IsCustomIcon) return Path.Combine(MainViewModel.Default.FilePaths.GetCacheFolderPath(), IconPath);
                 else return @"/BedrockLauncher;component/Resources/images/installation_icons/" + IconPath;
             }
         }
@@ -42,8 +48,9 @@ namespace BedrockLauncher.Classes
         {
             get
             {
-                if (VersionUUID == "latest_release" && ReadOnly) return Application.Current.FindResource("VersionEntries_LatestRelease").ToString();
-                else if (VersionUUID == "latest_beta" && ReadOnly) return Application.Current.FindResource("VersionEntries_LatestSnapshot").ToString();
+                Depends.On(VersionUUID, DisplayName);
+                if (VersionUUID == Constants.LATEST_RELEASE_UUID && ReadOnly) return Application.Current.FindResource("VersionEntries_LatestRelease").ToString();
+                else if (VersionUUID == Constants.LATEST_BETA_UUID && ReadOnly) return Application.Current.FindResource("VersionEntries_LatestSnapshot").ToString();
                 else if (string.IsNullOrWhiteSpace(DisplayName)) return Application.Current.FindResource("VersionEntries_UnnamedInstallation").ToString();
                 else return DisplayName;
             }
@@ -53,6 +60,7 @@ namespace BedrockLauncher.Classes
         {
             get
             {
+                Depends.On(DirectoryName, DisplayName);
                 if (string.IsNullOrEmpty(DirectoryName))
                 {
                     char[] invalidFileNameChars = System.IO.Path.GetInvalidFileNameChars();
@@ -62,25 +70,13 @@ namespace BedrockLauncher.Classes
                 else return DirectoryName;
             }
         }
-        [JsonIgnore]
-        public BLVersion Version
+        [JsonIgnore, SafeForDependencyAnalysis]
+        public MCVersion Version
         {
             get
             {
-                if (VersioningMode != VersioningMode.None)
-                {
-                    var latest_beta = LauncherModel.Default.Versions.ToList().FirstOrDefault(x => x.IsBeta == true);
-                    var latest_release = LauncherModel.Default.Versions.ToList().FirstOrDefault(x => x.IsBeta == false);
-
-                    if (VersioningMode == VersioningMode.LatestBeta && latest_beta != null) return BLVersion.Convert(latest_beta);
-                    else if (VersioningMode == VersioningMode.LatestRelease && latest_release != null) return BLVersion.Convert(latest_release);
-                    else return null;
-                }
-                else if (LauncherModel.Default.Versions.ToList().Exists(x => x.UUID == VersionUUID))
-                {
-                    return BLVersion.Convert(LauncherModel.Default.Versions.ToList().Where(x => x.UUID == VersionUUID).FirstOrDefault());
-                }
-                return null;
+                Depends.On(VersioningMode, VersionUUID);
+                return MainViewModel.Default.PackageManager.VersionDownloader.GetVersion(VersioningMode, VersionUUID);
             }
         }
         [JsonIgnore]
@@ -88,6 +84,7 @@ namespace BedrockLauncher.Classes
         {
             get
             {
+                Depends.On(VersionUUID, VersioningMode);
                 if (VersioningMode == VersioningMode.LatestBeta) return true;
                 else return Version?.IsBeta ?? false;
             }
@@ -97,6 +94,7 @@ namespace BedrockLauncher.Classes
         {
             get
             {
+                Depends.On(VersionUUID, VersioningMode);
                 string version = Version?.Name ?? "???";
                 if (VersioningMode == VersioningMode.LatestBeta) return Application.Current.FindResource("VersionEntries_LatestSnapshot").ToString();
                 else if (VersioningMode == VersioningMode.LatestRelease) return Application.Current.FindResource("VersionEntries_LatestRelease").ToString();
@@ -108,7 +106,16 @@ namespace BedrockLauncher.Classes
         {
             get
             {
+                Depends.On(LastPlayed);
                 return LastPlayed.ToString("s");
+            }
+        }
+
+        public VersionType VersionType
+        {
+            get
+            {
+                return Version?.Type ?? VersionType.Release;
             }
         }
 
@@ -121,12 +128,14 @@ namespace BedrockLauncher.Classes
             if (!string.IsNullOrEmpty(newName)) clone.DisplayName = newName;
             return clone;
         }
+
+        public void OpenDirectory()
+        {
+            string Directory = MainViewModel.Default.FilePaths.GetInstallationsFolderPath(MainViewModel.Default.Config.CurrentProfileUUID, DirectoryName_Full);
+            if (!System.IO.Directory.Exists(Directory)) System.IO.Directory.CreateDirectory(Directory);
+            Process.Start("explorer.exe", Directory);
+        }
+
     }
 
-    public enum VersioningMode : int
-    {
-        LatestBeta,
-        LatestRelease,
-        None
-    }
 }

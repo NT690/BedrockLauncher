@@ -12,87 +12,54 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using BedrockLauncher.Classes;
-using BedrockLauncher.Core.Classes;
 using BedrockLauncher.ViewModels;
+using System.Collections.ObjectModel;
+using BedrockLauncher.UpdateProcessor.Extensions;
 
 namespace BedrockLauncher.Pages.Preview
 {
-    /// <summary>
-    /// Interaction logic for EditInstallationScreen.xaml
-    /// </summary>
+
+
     public partial class EditInstallationScreen : Page
     {
-        private List<BLVersion> Versions { get; set; } = new List<BLVersion>();
 
         private bool IsEditMode = false;
 
-        private string SelectedUUID = string.Empty;
+        public EditInstallationsPageViewModel ViewModel { get; set; } = new EditInstallationsPageViewModel();
 
-        public EditInstallationScreen()
+
+        public EditInstallationScreen(BLInstallation i = null)
         {
+            this.DataContext = ViewModel;
             InitializeComponent();
-            UpdateVersionsComboBox();
+            if (i != null) UpdateEditingFields(i);
+            else UpdateAddingFields();
         }
-
-        public EditInstallationScreen(BLInstallation i)
+        private void UpdateAddingFields()
         {
-            InitializeComponent();
-            UpdateVersionsComboBox();
-            UpdateEditingFields(i);
+            InstallationIconSelect.Init();
         }
 
         private void UpdateEditingFields(BLInstallation i)
         {
             IsEditMode = true;
-            InstallationVersionSelect.SelectedItem = Versions.Where(x => x.UUID == i.VersionUUID).FirstOrDefault();
-            InstallationNameField.Text = i.DisplayName;
-            InstallationDirectoryField.Text = i.DirectoryName;
-            InstallationIconSelect.Init(i.IconPath_Full, i.IsCustomIcon);
-            SelectedUUID = i.InstallationUUID;
+
+            ViewModel.SelectedVersionUUID = i.VersionUUID;
+            ViewModel.InstallationName = i.DisplayName;
+            ViewModel.InstallationDirectory = i.DirectoryName;
+            ViewModel.SelectedUUID = i.InstallationUUID;
+
+            InstallationIconSelect.Init(i);
 
             Header.SetResourceReference(TextBlock.TextProperty, "EditInstallationScreen_AltTitle");
             CreateButton.SetResourceReference(Button.ContentProperty, "EditInstallationScreen_AltCreateButton");
         }
 
-
-        private void GetManualComboBoxEntries()
-        {
-            BLVersion latest_release = new BLVersion("latest_release", Application.Current.Resources["EditInstallationScreen_LatestRelease"].ToString(), false);
-            BLVersion latest_beta = new BLVersion("latest_beta", Application.Current.Resources["EditInstallationScreen_LatestSnapshot"].ToString(), true);
-            Versions.InsertRange(0, new List<BLVersion>() { latest_release, latest_beta });
-        }
-
-        private void UpdateVersionsComboBox()
-        {
-            Versions.Clear();
-            InstallationVersionSelect.ItemsSource = null;
-            foreach (var entry in LauncherModel.Default.Versions) Versions.Add(BLVersion.Convert(entry));
-            GetManualComboBoxEntries();
-            InstallationVersionSelect.ItemsSource = Versions;
-            var view = CollectionViewSource.GetDefaultView(InstallationVersionSelect.ItemsSource) as CollectionView;
-            view.Filter = Filter_VersionList;
-            InstallationVersionSelect.SelectedIndex = 0;
-        }
-
-        public bool Filter_VersionList(object obj)
-        {
-            BLVersion v = BLVersion.Convert(obj as MCVersion);
-
-            if (v != null)
-            {
-                if (!Properties.LauncherSettings.Default.ShowBetas && v.IsBeta) return false;
-                else if (!Properties.LauncherSettings.Default.ShowReleases && !v.IsBeta) return false;
-                else return true;
-            }
-            else return false;
-
-        }
-
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
@@ -101,16 +68,21 @@ namespace BedrockLauncher.Pages.Preview
             else CreateInstallation();
         }
 
+        private MCVersion GetVersion(string uuid)
+        {
+            return MainViewModel.Default.Versions.Where(x => x.UUID == uuid).FirstOrDefault();
+        }
+
         private void UpdateInstallation()
         {
-            LauncherModel.Default.Config.Installation_Edit(SelectedUUID, InstallationNameField.Text, Versions[InstallationVersionSelect.SelectedIndex], InstallationDirectoryField.Text, InstallationIconSelect.IconPath, InstallationIconSelect.IsIconCustom);
-            LauncherModel.Default.SetOverlayFrame(null);
+            MainViewModel.Default.Config.Installation_Edit(ViewModel.SelectedUUID, ViewModel.InstallationName, GetVersion(ViewModel.SelectedVersionUUID), ViewModel.InstallationDirectory, InstallationIconSelect.IconPath, InstallationIconSelect.IsIconCustom);
+            MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void CreateInstallation()
         {
-            LauncherModel.Default.Config.Installation_Create(InstallationNameField.Text, Versions[InstallationVersionSelect.SelectedIndex], InstallationDirectoryField.Text, InstallationIconSelect.IconPath, InstallationIconSelect.IsIconCustom);
-            LauncherModel.Default.SetOverlayFrame(null);
+            MainViewModel.Default.Config.Installation_Create(ViewModel.InstallationName, GetVersion(ViewModel.SelectedVersionUUID), ViewModel.InstallationDirectory, InstallationIconSelect.IconPath, InstallationIconSelect.IsIconCustom);
+            MainViewModel.Default.SetOverlayFrame(null);
         }
 
         private void InstallationDirectoryField_TextChanged(object sender, TextChangedEventArgs e)
@@ -134,7 +106,23 @@ namespace BedrockLauncher.Pages.Preview
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.Default.SetOverlayFrame(null);
+            ViewModels.MainViewModel.Default.SetOverlayFrame(null);
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
+        {
+            if (e.Item is MCVersion)
+            {
+                var version = (e.Item as MCVersion);
+                if (VersionDbExtensions.DoesVerionArchMatch(Constants.CurrentArchitecture, version.Architecture)) e.Accepted = true;
+                else e.Accepted = false;
+            }
+            else e.Accepted = false;
         }
     }
 }

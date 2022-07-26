@@ -12,9 +12,11 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
-using BedrockLauncher.Core.Controls;
+using BedrockLauncher.Extensions;
+using BedrockLauncher.Controls.Various;
 using BedrockLauncher.ViewModels;
+using BedrockLauncher.UI.Controls.Misc;
+using FolderBrowserEx;
 
 namespace BedrockLauncher.Pages.Settings
 {
@@ -54,8 +56,6 @@ namespace BedrockLauncher.Pages.Settings
             RestartNeeded = true;
 
             UpdateDirectoryPathTextbox();
-
-            LauncherModel.Default.LoadConfig();
         }
 
         private void UpdateDirectoryPathTextbox()
@@ -75,20 +75,20 @@ namespace BedrockLauncher.Pages.Settings
                 }
                 else
                 {
-                    StorageDirectoryTextBox.Text = LauncherModel.Default.FilepathManager.DefaultLocation;
+                    StorageDirectoryTextBox.Text = MainViewModel.Default.FilePaths.DefaultLocation;
                 }
             }
         }
 
         private void BrowseForDirectory()
         {
-            FolderSelectDialog dialog = new FolderSelectDialog()
+            FolderBrowserDialog dialog = new FolderBrowserDialog()
             {
-                InitialDirectory = StorageDirectoryTextBox.Text
+                InitialFolder = StorageDirectoryTextBox.Text
             };
-            if (dialog.ShowDialog(new WindowInteropHelper(this).Handle))
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.LauncherSettings.Default.FixedDirectory = dialog.FileName;
+                Properties.LauncherSettings.Default.FixedDirectory = dialog.SelectedFolder;
                 Properties.LauncherSettings.Default.Save();
             }
         }

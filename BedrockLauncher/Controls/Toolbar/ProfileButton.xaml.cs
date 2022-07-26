@@ -12,20 +12,21 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
-using BedrockLauncher.Controls.Items;
+using BedrockLauncher.Controls.Items.Launcher;
 using BedrockLauncher.Pages;
-using BedrockLauncher.Core.Pages.Common;
+using BedrockLauncher.Pages.Common;
 using BedrockLauncher.ViewModels;
+using BedrockLauncher.UI.Pages.Common;
 
 namespace BedrockLauncher.Controls.Toolbar
 {
     /// <summary>
     /// Interaction logic for ProfileContextMenu.xaml
     /// </summary>
-    public partial class ProfileButton : Grid
+    public partial class ProfileButton : ToolbarButtonBase
     {
         private List<ProfileItem> OtherAccountControls { get; set; } = new List<ProfileItem>();
 
@@ -42,9 +43,9 @@ namespace BedrockLauncher.Controls.Toolbar
             }
             OtherAccountControls.Clear();
 
-            int profileCount = LauncherModel.Default.Config.profiles.Count;
+            int profileCount = MainViewModel.Default.Config.profiles.Count;
 
-            foreach (var entry in LauncherModel.Default.Config.profiles)
+            foreach (var entry in MainViewModel.Default.Config.profiles)
             {
                 ProfileItem profile = new ProfileItem(entry, this);
                 if (!(profileCount <= 1))
@@ -94,7 +95,8 @@ namespace BedrockLauncher.Controls.Toolbar
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModels.LauncherModel.MainThread.NavigateToNewProfilePage();
+                ToolbarButtonBase_Click(this, e);
+                //ViewModels.MainViewModel.MainThread.NavigateToNewProfilePage();
         }
 
         private async void RemoveProfileButton_Click(object sender, RoutedEventArgs e)
@@ -109,7 +111,7 @@ namespace BedrockLauncher.Controls.Toolbar
 
             if (result == System.Windows.Forms.DialogResult.Yes)
             {
-                LauncherModel.Default.Config.Profile_Remove(profile);
+                MainViewModel.Default.Config.Profile_Remove(profile);
             }
 
         }

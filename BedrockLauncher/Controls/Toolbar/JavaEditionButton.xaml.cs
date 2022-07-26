@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Windows.Controls.Primitives;
 using BedrockLauncher.Classes;
 
@@ -21,7 +21,7 @@ namespace BedrockLauncher.Controls.Toolbar
     /// <summary>
     /// Interaction logic for JavaEditionButton.xaml
     /// </summary>
-    public partial class JavaEditionButton : Grid
+    public partial class JavaEditionButton : ToolbarButtonBase
     {
 
         public JavaEditionButton()
@@ -31,7 +31,8 @@ namespace BedrockLauncher.Controls.Toolbar
 
         private async void SideBarButton_Click(object sender, RoutedEventArgs e)
         {
-            await Task.Run(ViewModels.LauncherModel.MainThread.NavigateToJavaLauncher);
+            ToolbarButtonBase_Click(this, e);
+            //await Task.Run(ViewModels.MainViewModel.MainThread.NavigateToJavaLauncher);
             await this.Dispatcher.InvokeAsync(() => { this.Button.IsChecked = false; });
         }
     }

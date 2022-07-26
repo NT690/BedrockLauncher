@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BedrockLauncher.UpdateProcessor;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -26,10 +27,6 @@ namespace BedrockLauncher.Pages.Settings
             InitializeComponent();
         }
 
-        private void Page_Initialized(object sender, EventArgs e)
-        {
-            AccountPicker.RefreshProfileContextMenuItems();
-        }
         private void XboxInsiderLegacy_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("xbox-insider://");
@@ -42,6 +39,11 @@ namespace BedrockLauncher.Pages.Settings
         private void MSAccounts_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("ms-settings:emailandaccounts");
+        }
+
+        private void Page_Initialized(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

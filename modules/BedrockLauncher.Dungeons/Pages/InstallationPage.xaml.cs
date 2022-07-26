@@ -13,7 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using BedrockLauncher.Dungeons.Methods;
-using BedrockLauncher.Core.Controls;
+using BedrockLauncher.UI.Controls.Misc;
+using FolderBrowserEx;
 
 namespace BedrockLauncher.Dungeons.Pages
 {
@@ -29,10 +30,10 @@ namespace BedrockLauncher.Dungeons.Pages
 
         private void BrowseDirectoryButton_Click(object sender, RoutedEventArgs e)
         {
-            FolderSelectDialog dialog = new FolderSelectDialog();
-            if (dialog.ShowDialog())
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.DungeonSettings.Default.InstallLocation = dialog.FileName;
+                Properties.DungeonSettings.Default.InstallLocation = dialog.SelectedFolder;
                 Properties.DungeonSettings.Default.Save();
             }
         }
@@ -60,6 +61,7 @@ namespace BedrockLauncher.Dungeons.Pages
         private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
             Properties.DungeonSettings.Default.Save();
+            if (InstructionsTab.IsSelected) UpdateInstructions();
         }
 
         private void ResetDirectoryButton_Click(object sender, RoutedEventArgs e)
@@ -70,10 +72,10 @@ namespace BedrockLauncher.Dungeons.Pages
 
         private void BrowseModDirectoryButton_Click(object sender, RoutedEventArgs e)
         {
-            FolderSelectDialog dialog = new FolderSelectDialog();
-            if (dialog.ShowDialog())
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.DungeonSettings.Default.ModsLocation = dialog.FileName;
+                Properties.DungeonSettings.Default.ModsLocation = dialog.SelectedFolder;
                 Properties.DungeonSettings.Default.Save();
             }
         }
@@ -92,6 +94,37 @@ namespace BedrockLauncher.Dungeons.Pages
         private void OpenContentButton_Click(object sender, RoutedEventArgs e)
         {
             GameManager.OpenContentFolder();
+        }
+
+        private void InstallStorePatch_Click(object sender, RoutedEventArgs e)
+        {
+            GameManager.InstallStorePatch(false);
+        }
+
+        private void UpdateStorePatch_Click(object sender, RoutedEventArgs e)
+        {
+            GameManager.InstallStorePatch(true);
+        }
+
+        private void TabItem_Selected(object sender, RoutedEventArgs e)
+        {
+            UpdateInstructions();
+        }
+
+        private void UpdateInstructions()
+        {
+            string documentation;
+            switch (Properties.DungeonSettings.Default.GameVariant)
+            {
+                case Enums.GameVariant.Launcher: documentation = "Dungeons_LauncherInstructions.md"; break;
+                case Enums.GameVariant.Store: documentation = "Dungeons_StoreInstructions.md"; break;
+                case Enums.GameVariant.Steam: documentation = "Dungeons_SteamInstructions.md"; break;
+                default: throw new NotImplementedException();
+            }
+
+            if (BedrockLauncher.Localization.Language.LanguageManager.TryGetResource(documentation, out string contents))
+                Markdownview.Markdown = contents;
+
         }
     }
 }

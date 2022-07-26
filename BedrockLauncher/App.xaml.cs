@@ -6,11 +6,12 @@ using System.Linq;
 using System;
 using Microsoft.Win32;
 using System.IO;
-using BedrockLauncher.Methods;
+using BedrockLauncher.Extensions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using BedrockLauncher.Classes;
 using System.Windows.Input;
+using BedrockLauncher.Handlers;
 
 namespace BedrockLauncher
 {
@@ -21,7 +22,7 @@ namespace BedrockLauncher
     {
         public App() : base()
         {
-
+            this.DispatcherUnhandledException += RuntimeHandler.OnDispatcherUnhandledException;
         }
     }
 }
